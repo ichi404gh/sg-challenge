@@ -27,6 +27,7 @@ module.exports = {
   },
   rules: {
     "linebreak-style": "off",
+    "@typescript-eslint/explicit-module-boundary-types": 0,
     "prettier/prettier": [
       "error",
       {
