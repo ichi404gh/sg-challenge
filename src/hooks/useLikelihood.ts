@@ -1,54 +1,91 @@
-import { useAnts } from '../api/useAnts';
 import { useCallback, useEffect, useReducer } from 'react';
+import * as O from 'optics-ts';
+
+import { useAnts } from '../api/useAnts';
 import { generateAntWinLikelihoodCalculator } from '../services/winLikelihoodCalculator';
-import { CompetingAnt, PartialCalculationState } from '../domain/CompetingAnt';
+import {
+  AntCalculationState,
+  CompetingAnt,
+  PartialCalculationState,
+} from '../domain/CompetingAnt';
 
 type AggregatedCalculationState =
   | PartialCalculationState
   | { state: 'calculated' };
 
-type Action =
-  | { type: 'initAnts'; ants: CompetingAnt[] }
-  | { type: 'startCalculation'; callback: (v: number, a: CompetingAnt) => void }
-  | { type: 'oneFinished'; value: number; ant: CompetingAnt };
+type InitAntsAction = { type: 'initAnts'; ants: CompetingAnt[] };
+
+type StartCalculationAction = {
+  type: 'startCalculation';
+  callback: (v: number, a: CompetingAnt) => void;
+};
+
+type OneFinishedAction = {
+  type: 'oneFinished';
+  value: number;
+  ant: CompetingAnt;
+};
+
+type Action = InitAntsAction | StartCalculationAction | OneFinishedAction;
 
 type ReducerState = {
   aggregatedState: AggregatedCalculationState;
   competingAnts: CompetingAnt[];
 };
 
+function handleStartCalculation(
+  state: ReducerState,
+  action: StartCalculationAction
+): ReducerState {
+  state.competingAnts.forEach((a) =>
+    a.calculator((v) => action.callback(v, a))
+  );
+
+  const allAntsState = O.optic_<ReducerState>()
+    .prop('competingAnts')
+    .elems()
+    .prop('calculationState');
+
+  const aggregatedStateLense = O.optic_<ReducerState>().prop('aggregatedState');
+  const inProgressState: AggregatedCalculationState = {
+    state: 'inProgress',
+  };
+
+  return O.pipe(
+    state,
+    O.set(allAntsState)({ state: 'inProgress' } as AntCalculationState),
+    O.set(aggregatedStateLense)(inProgressState)
+  );
+}
+
+function handleOneFinished(
+  state: ReducerState,
+  action: OneFinishedAction
+): ReducerState {
+  const updateAntState = O.optic_<CompetingAnt[]>()
+    .filter((a) => a.ant === action.ant.ant)
+    .elems()
+    .prop('calculationState');
+
+  const ants: CompetingAnt[] = O.set(updateAntState)({
+    state: 'calculated',
+    value: action.value,
+  } as AntCalculationState)(state.competingAnts);
+
+  const aggregatedState: AggregatedCalculationState = ants.every(
+    (a) => a.calculationState.state === 'calculated'
+  )
+    ? { state: 'calculated' }
+    : { state: 'inProgress' };
+  return { competingAnts: ants, aggregatedState };
+}
+
 function stateReducer(state: ReducerState, action: Action): ReducerState {
   switch (action.type) {
     case 'startCalculation':
-      state.competingAnts.forEach((a) =>
-        a.calculator((v) => action.callback(v, a))
-      );
-
-      return {
-        aggregatedState: { state: 'inProgress' },
-        competingAnts: [
-          ...state.competingAnts.map(
-            (a) =>
-              ({
-                ...a,
-                calculationState: { state: 'inProgress' },
-              } as CompetingAnt)
-          ),
-        ],
-      };
+      return handleStartCalculation(state, action);
     case 'oneFinished':
-      const ants = state.competingAnts
-        .filter((v) => v.ant !== action.ant.ant)
-        .concat({
-          ...action.ant,
-          calculationState: { state: 'calculated', value: action.value },
-        });
-      const aState: AggregatedCalculationState = ants.every(
-        (a) => a.calculationState.state === 'calculated'
-      )
-        ? { state: 'calculated' }
-        : { state: 'inProgress' };
-      return { competingAnts: ants, aggregatedState: aState };
+      return handleOneFinished(state, action);
     case 'initAnts':
       return {
         aggregatedState: { state: 'notStarted' },

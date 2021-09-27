@@ -11,6 +11,6 @@ export type PartialCalculationState =
   | { state: 'notStarted' }
   | { state: 'inProgress' };
 
-type AntCalculationState =
+export type AntCalculationState =
   | PartialCalculationState
   | { state: 'calculated'; value: number };

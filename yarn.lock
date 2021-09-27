@@ -9145,6 +9145,11 @@ opn@^5.5.0:
   dependencies:
     is-wsl "^1.1.0"
 
+optics-ts@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/optics-ts/-/optics-ts-2.2.0.tgz#978efa19e23f2a484bbbf82d9401930875223119"
+  integrity sha512-1rkFaX3z7xqYsBSgOP9q8DDIidwWoUMr1dBa9m5gR0fNyEBELATo2W8VSZ6/mCJprJQTt3F1FLj3HDYTE7/P2Q==
+
 optimism@^0.16.1:
   version "0.16.1"
   resolved "https://registry.yarnpkg.com/optimism/-/optimism-0.16.1.tgz#7c8efc1f3179f18307b887e18c15c5b7133f6e7d"
@@ -11415,11 +11420,6 @@ sha.js@^2.4.0, sha.js@^2.4.11, sha.js@^2.4.8:
   dependencies:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
-
-shades@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/shades/-/shades-2.1.0.tgz#5cefc51f6294769e3413d4e4050c9d4e7b00b245"
-  integrity sha512-6D+4+lPBjc95ptStD9PzOfrEc2d7zwxWVn2SFEbYaI4EXB5+tcChhyGwOEvbEjGb+d1QS44AcYcSYgWNz5grzg==
 
 shallowequal@^1.1.0:
   version "1.1.0"
